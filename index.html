@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-based Object Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/vision_bundle.js" type="module"></script>
+</head>
+<body>
+    <h1>Web-based Object Detection</h1>
+    <input type="file" id="imageUpload" accept="image/*">
+    <div>
+        <img id="imagePreview" style="max-width: 500px; max-height: 500px; display: none;">
+    </div>
+    <div id="result"></div>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
