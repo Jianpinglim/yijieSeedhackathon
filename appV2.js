@@ -1,6 +1,7 @@
 import { FilesetResolver, ImageClassifier } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/vision_bundle.js";
 
 let imageClassifier;
+let videoElement = document.getElementById('video');
 
 const recyclableItems = {
     "plastic bottle": true,
@@ -37,9 +38,9 @@ const recyclableItems = {
     "aluminum beverage can": true,
     "paper towel rolls": true,
     "cans": true,
-    "bottle caps": true
+    "bottle caps": true,
+    "wine bottle": true
 };
-
 
 async function createImageClassifier() {
     console.log("Creating image classifier...");
@@ -55,37 +56,30 @@ async function createImageClassifier() {
     console.log("Image classifier created successfully");
 }
 
-async function init() {
+async function startCamera() {
     try {
-        await createImageClassifier();
-        document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
     } catch (error) {
-        console.error("Error initializing classifier:", error);
+        console.error("Error accessing camera:", error);
     }
 }
 
-async function handleImageUpload(e) {
-    console.log("Image uploaded, processing...");
-    const file = e.target.files[0];
-    const img = document.getElementById('imagePreview');
-    img.src = URL.createObjectURL(file);
-    img.style.display = 'block';
+// Capture a frame from the video and classify it
+async function detectFromVideoFrame() {
+    if (!imageClassifier) {
+        console.error("Image classifier not initialized");
+        return;
+    }
 
-    img.onload = async () => {
-        console.log("Image loaded, running classification...");
-        if (!imageClassifier) {
-            console.error("Image classifier not initialized");
-            return;
-        }
-        try {
-            const results = await imageClassifier.classify(img);
-            console.log("Classification results:", results);
-            displayResults(results);
-        } catch (error) {
-            console.error("Error during classification:", error);
-        }
-    };
+    try {
+        const results = await imageClassifier.classify(videoElement);
+        displayResults(results);
+    } catch (error) {
+        console.error("Error during classification:", error);
+    }
 }
+
 
 function displayResults(results) {
     console.log("Displaying results...");
@@ -107,8 +101,16 @@ function displayResults(results) {
     } else {
         resultDiv.innerHTML += '<p>No results found or unexpected result format.</p>';
     }
-    
-    console.log("Full classification results:", results);
 }
 
-init();
+// Continuously run the object detection
+async function startDetection() {
+    await createImageClassifier();
+    await startCamera();
+
+    videoElement.addEventListener('loadeddata', () => {
+        setInterval(detectFromVideoFrame, 1000);  // Run detection every 1 second
+    });
+}
+
+startDetection();
